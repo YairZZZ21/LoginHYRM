@@ -10,10 +10,10 @@ app.use(express.json());
 
 // Configuración de la base de datos usando variables de entorno
 const db = mysql.createConnection({
-  host: process.env.DB_HOST, // Por ejemplo, 'localhost' o tu servidor de base de datos
-  user: process.env.DB_USER, // Por ejemplo, 'root'
-  password: process.env.DB_PASSWORD, // Tu contraseña de base de datos
-  database: process.env.DB_NAME // El nombre de tu base de datos
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
 });
 
 db.connect((err) => {
@@ -37,13 +37,11 @@ app.post('/login', (req, res) => {
       }
 
       if (result.length > 0) {
-        // Verifica la contraseña usando bcrypt
         const user = result[0];
+
         bcrypt.compare(password, user.password, (err, isMatch) => {
-          if (err) {
-            return res.status(500).send('Error al comparar contraseñas');
-          }
-          
+          if (err) return res.status(500).send('Error al verificar contraseña');
+
           if (isMatch) {
             res.json({ success: true, user });
           } else {
@@ -57,7 +55,9 @@ app.post('/login', (req, res) => {
   );
 });
 
-// Inicia el servidor en el puerto 3000
 app.listen(3000, () => {
+  console.log('API corriendo en http://localhost:3000');
+});
+
   console.log('API corriendo en http://localhost:3000');
 });
