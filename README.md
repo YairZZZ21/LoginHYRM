@@ -28,6 +28,34 @@ db.connect((err) => {
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
+  db.query('SELECT * FROM usuarios WHERE email = ?', [email], (err, result) => {
+    if (err) {
+      return res.status(500).send('Error en el servidor');
+    }
+
+    if (result.length > 0) {
+      const user = result[0];
+
+      bcrypt.compare(password, user.password, (err, isMatch) => {
+        if (err) return res.status(500).send('Error al verificar contraseña');
+
+        if (isMatch) {
+          res.json({ success: true, user });
+        } else {
+          res.status(401).json({ success: false, message: 'Credenciales incorrectas' });
+        }
+      });
+    } else {
+      res.status(401).json({ success: false, message: 'Credenciales incorrectas' });
+    }
+  });
+});
+
+app.listen(3000, () => {
+  console.log('API corriendo en http://localhost:3000');
+});
+
+
   db.query(
     'SELECT * FROM usuarios WHERE email = ?',
     [email],
