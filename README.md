@@ -8,12 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Configuración de la base de datos usando variables de entorno
+// Configuración de la base de datos
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
 });
 
 db.connect((err) => {
@@ -24,9 +24,36 @@ db.connect((err) => {
   }
 });
 
-// Ruta para el login
+// Ruta de login
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
+
+  db.query('SELECT * FROM usuarios WHERE email = ?', [email], (err, result) => {
+    if (err) return res.status(500).send('Error en el servidor');
+
+    if (result.length > 0) {
+      const user = result[0];
+
+      // Verificar la contraseña encriptada con bcrypt
+      bcrypt.compare(password, user.password, (err, isMatch) => {
+        if (err) return res.status(500).send('Error al comparar contraseñas');
+
+        if (isMatch) {
+          res.json({ success: true, user });
+        } else {
+          res.status(401).json({ success: false, message: 'Credenciales incorrectas' });
+        }
+      });
+    } else {
+      res.status(401).json({ success: false, message: 'Credenciales incorrectas' });
+    }
+  });
+});
+
+app.listen(3000, () => {
+  console.log('API corriendo en http://localhost:3000');
+});
+
 
   db.query('SELECT * FROM usuarios WHERE email = ?', [email], (err, result) => {
     if (err) {
